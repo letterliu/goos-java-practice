@@ -1,0 +1,9 @@
+services:
+  toolbox:
+    build:
+      context: ..
+      dockerfile: docker/toolbox.Dockerfile
+    volumes:
+      - ..:/app
+    working_dir: /app
+    command: ["sleep", "infinity"]
