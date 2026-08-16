@@ -1,2 +1,4 @@
 build/
 build-docker/
+.idea/
+.DS_Store

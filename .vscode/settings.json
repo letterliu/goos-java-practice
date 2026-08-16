@@ -1,0 +1,16 @@
+{
+  "java.project.sourcePaths": [
+    "src",
+    "test/end-to-end"
+  ],
+  "java.project.referencedLibraries": {
+    "include": [
+      "lib/deploy/*.jar",
+      "lib/develop/*.jar"
+    ],
+    "exclude": [
+      "**/*-src.jar",
+      "**/*-sources.jar"
+    ]
+  }
+}
