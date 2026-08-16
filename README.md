@@ -1,10 +1,38 @@
 # GOOS Java Practice
 
-參考 [GOOS（Growing Object-Oriented Software, Guided by Tests）](https://www.growing-object-oriented-software.com/) 書中的 Auction Sniper 範例，重新用 TDD 刻一次，盡量比照作者原始的 [goos-code](https://github.com/sf105/goos-code) repo 的簡單管理方式：依賴用 vendor JAR、手動 `javac`/`java`，不用額外的建置工具（不用 Maven/Gradle/Ant）。
+參考 [GOOS（Growing Object-Oriented Software）](https://www.growing-object-oriented-software.com/) 書中的 Auction Sniper 範例，重新用 TDD 刻一次，盡量比照作者原始的 [goos-code](https://github.com/sf105/goos-code) repo 的簡單管理方式：依賴用 vendor JAR、手動 `javac` / `java`，不用 Maven / Gradle / Ant 等額外建置工具。
 
 ## Repo 結構
 
 本專案使用一般 Git repository 管理。
+
+## TDD Commit Message 規範
+
+照書中章節逐步進行 TDD：先寫 test code，再寫 production code。Git commit message 使用 Conventional Commits，並標示對應的書中出處。
+
+格式：
+
+```text
+test(<scope>): red - <test case name> [<book reference>]
+feat(<scope>): green - <test case name> [<book reference>]
+refactor(<scope>): <refactoring description> [<book reference>]
+```
+
+* `<scope>`：測試層級（`unit` / `integration` / `e2e`）或模組名稱（`ui` / `api` / `redis` 等），選擇對這次改動辨識度較高的名稱。跨越多個模組時可省略 scope。
+* `<book reference>`：可使用章節（`ch10`）、小節（`3.6`）或頁碼（`p42`），視情況組合，例如 `[3.6]`、`[p42]`、`[ch10 p85]`、`[3.6 p42]`。
+* 書中出處代表這個 commit 的內容涵蓋到書中該章節或頁碼為止，不代表精確定位到單一段落。
+
+範例：
+
+```text
+test(e2e): red - sniperJoinsAuctionUntilAuctionCloses [3.6]
+feat(e2e): green - sniperJoinsAuctionUntilAuctionCloses [3.6]
+refactor(ui): extract AuctionEventListener [p42]
+test(e2e): red - sniperJoinsAuctionUntilAuctionCloses [ch10 p85]
+test(e2e): red - sniperJoinsAuctionUntilAuctionCloses [11.2.1 p96]
+```
+
+如果 commit 有書中內文作為補充說明，commit body 應使用精簡的英文摘要，不直接照抄原文，也不要混用中文。
 
 ## Vendor dependencies
 
@@ -18,105 +46,268 @@
 
 新增 dependency 時，直接將 JAR 放入對應目錄。
 
-### IDE library 設定
+### IDE 設定
 
-* **VS Code**：安裝 Java extension 後，`.vscode/settings.json` 的 `java.project.referencedLibraries` 包含 `lib/deploy/*.jar`、`lib/develop/*.jar`，並排除 `-src.jar` / `-sources.jar`。此設定檔會被 Git 追蹤，讓 team 成員開啟專案後即可使用。
+**IntelliJ**
+
+`.idea/libraries/lib.xml` 的 library 使用兩個 `jarDirectory`，分別指向：
+
+```text
+lib/deploy
+lib/develop
+```
+
+新增或移除 JAR 後重新整理 IDE，即可自動反映。
+
+**VS Code**
+
+安裝 Java extension 後，`.vscode/settings.json` 的 `java.project.referencedLibraries` 設定包含：
+
+```text
+lib/deploy/*.jar
+lib/develop/*.jar
+```
+
+並排除 `-src.jar` / `-sources.jar`。
+
+`.vscode/settings.json` 會被 Git 追蹤，讓 team 成員開啟專案後即可使用相同的 Java library 設定。
 
 ## Java 一律用 Docker 執行
 
-本專案的 Java 編譯、執行與測試一律透過 `docker/docker-compose.yml` 定義的 `toolbox` container 執行，不在 host 直接執行 `javac` / `java`。
+本專案的 Java 編譯、執行、測試一律透過 `docker/docker-compose.yml` 定義的 `toolbox` container 執行，不在 host 直接執行 `javac` / `java`。
 
-### 執行 Swing app
+## Docker 環境
 
-執行 Auction Sniper Swing app：
+Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試環境也是透過 Docker 提供。
+
+詳細的 Docker 環境說明見 [docker/README.md](docker/README.md)。
+
+### 常用腳本
+
+| 腳本                                | 用途                                    |
+| --------------------------------- | ------------------------------------- |
+| `docker/scripts/test.sh`          | 編譯並執行 end-to-end 測試                   |
+| `docker/scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests  |
+| `docker/scripts/run-app.sh`       | 編譯並執行 Auction Sniper Swing app        |
+| `docker/scripts/start-env.sh`     | 建立並初始化 Openfire 測試環境                  |
+| `docker/scripts/stop-env.sh`      | 停止 container 並清除 Openfire data volume |
+| `docker/scripts/reset-env.sh`     | 清除環境後重新建立 Openfire                    |
+
+執行 end-to-end 測試：
 
 ```bash
-docker/scripts/run-app.sh
+bash docker/scripts/test.sh
 ```
 
-預設會將 Swing 視窗顯示在主機的 X display 上。
+## Swing UI 與 X11
 
-### End-to-end 測試
+預設執行 E2E 測試時使用 `xvfb-run` 提供虛擬 X display，因此 Swing UI 不會顯示在主機螢幕上。
 
-E2E 測試需要連接實際的 XMPP server，因此 Openfire 也透過 Docker 執行。
+需要顯示 Swing UI 進行除錯時，可以使用：
 
-`toolbox` 使用：
+```bash
+bash docker/scripts/test.sh --headed
+```
+
+`--headed` 模式會將主機的 X display 傳入 toolbox container，讓 Swing UI 可以透過主機的 X server 顯示。
+
+在 macOS 上使用 XQuartz，Docker container 透過：
+
+```text
+host.docker.internal:0
+```
+
+連線到主機的 X display。
+
+另外，也可以直接執行 Auction Sniper：
+
+```bash
+bash docker/scripts/run-app.sh
+```
+
+## Openfire（XMPP）
+
+E2E 測試需要連到真正的 XMPP server。跟 `goos-code` 一樣使用 Docker 執行 Openfire。
+
+`docker/docker-compose.yml` 中的 `toolbox` 使用：
 
 ```yaml
 network_mode: service:openfire
 ```
 
-與 Openfire 共用 network namespace，因此測試中的 `XMPP_HOSTNAME` 使用 `localhost` 即可。
+因此 toolbox container 裡的 `localhost` 會直接指向 Openfire container。
 
-第一次建立環境，或 Openfire 資料被清空後，需要先執行：
+測試與 production code 使用固定的：
 
-```bash
-docker/scripts/start-env.sh
+```text
+XMPP_HOSTNAME = "localhost"
 ```
 
-環境準備完成後，再執行：
+因此不需要修改 source code 來配合 Docker network。
 
-```bash
-docker/scripts/test.sh
+### Openfire 版本
+
+原始 commit 使用：
+
+```text
+ghcr.io/igniterealtime/openfire:latest
 ```
 
-### Headed E2E 測試
+本專案為了確保在目前的 macOS 12.7.6 環境中能夠穩定且可重現地執行，固定使用：
 
-E2E 測試預設使用 `xvfb-run` 提供虛擬 display，因此不會顯示 Swing UI。
-
-若需要除錯並讓測試執行時的 Swing UI 顯示在主機螢幕上：
-
-```bash
-docker/scripts/test.sh --headed
+```text
+nasqueron/openfire:4.7.4
 ```
 
-### 重置 Openfire 環境
+因此本專案的 Openfire setup selector 會依照 Openfire 4.7.4 的實際 setup wizard HTML 調整。
 
-若需要清除 Openfire 的設定與測試帳號，重新建立完整環境：
+### Playwright 版本
 
-```bash
-docker/scripts/reset-env.sh
+原始設定使用較新的 Playwright 版本，但目前 macOS 12.7.6 無法使用較新的 Chromium binary。
+
+因此本專案固定使用與目前 macOS 環境相容的 Playwright 版本，並將其版本記錄在：
+
+```text
+docker/package.json
+docker/package-lock.json
 ```
 
-這會停止並移除 containers、刪除 Openfire data volume，然後重新執行環境初始化。
+首次建立環境時，在 `docker/` 目錄執行：
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+### 測試帳號
+
+Openfire 第一次啟動要先跑 setup wizard，並建立測試帳號才能執行 E2E 測試。
+
+`docker/setup-openfire.js` 使用 Playwright 自動完成 setup wizard，並建立以下測試帳號：
+
+| 帳號                   | 密碼        |
+| -------------------- | --------- |
+| `sniper`             | `sniper`  |
+| `auction-item-54321` | `auction` |
+| `auction-item-65432` | `auction` |
+
+### 第一次建立環境
+
+第一次建立環境，或 Openfire data volume 被清空後：
+
+```bash
+bash docker/scripts/start-env.sh
+```
+
+它會依序：
+
+1. 啟動 Openfire。
+2. 等待 `localhost:9090` 可以連線。
+3. build 並啟動 toolbox container。
+4. 安裝 Docker 目錄中的 Playwright dependencies。
+5. 安裝 Chromium。
+6. 執行 `setup-openfire.js`。
+7. 自動完成 Openfire setup wizard。
+8. 建立測試帳號。
+
+完成後即可執行：
+
+```bash
+bash docker/scripts/test.sh
+```
 
 ### 停止環境
 
-只需要停止目前的 Openfire 與 toolbox：
+```bash
+bash docker/scripts/stop-env.sh
+```
+
+停止並移除 Openfire 與 toolbox container，同時清空 Openfire data volume。
+
+### 重建環境
+
+如果 Openfire 環境設定壞掉，或需要從乾淨狀態重新建立：
 
 ```bash
-docker/scripts/stop-env.sh
+bash docker/scripts/reset-env.sh
 ```
 
-`stop-env.sh` 同時會清除 Openfire data volume，因此下次啟動時會重新執行 Openfire setup wizard。
-
-## Openfire（XMPP）
-
-E2E 測試需要連到真正的 XMPP server。
-
-Openfire 透過 Docker Compose 啟動，`toolbox` 與 Openfire 共用 network namespace，因此專案中的 XMPP host 使用 `localhost`。
-
-第一次建立環境時，`start-env.sh` 會：
-
-1. 啟動 Openfire。
-2. 等待 Openfire Web Console 可連線。
-3. 建立並啟動 `toolbox` container。
-4. 安裝 Playwright 與 Chromium。
-5. 使用 `setup-openfire.js` 自動完成 Openfire setup wizard。
-6. 建立 E2E 測試所需的 XMPP 帳號。
-
-因此正常的 E2E 測試流程為：
+等同於：
 
 ```text
-docker/scripts/start-env.sh
-        ↓
-Openfire 初始化
-        ↓
-建立測試帳號
-        ↓
-docker/scripts/test.sh
-        ↓
-編譯並執行 E2E tests
+stop-env.sh
+↓
+start-env.sh
 ```
 
-完整的 Docker 環境細節請參考 [`docker/README.md`](docker/README.md)。
+會清空 Openfire data volume，重新執行 setup wizard 並建立測試帳號。
+
+## Docker 與 macOS
+
+本專案的 Docker workflow 以 macOS + Docker Desktop 為主要開發環境。
+
+Docker container 內的 Java 執行環境與 host Java 環境分離，因此 host 不需要安裝或使用與專案相同版本的 JDK。
+
+Docker container 內負責：
+
+* Java compilation
+* Java application execution
+* JUnit tests
+* End-to-end tests
+* Openfire integration environment
+
+host 主要負責：
+
+* Git
+* Docker Desktop
+* VS Code / IntelliJ
+* XQuartz（需要 headed Swing UI 時）
+
+## 開發流程
+
+本專案按照 GOOS 書中的 TDD 演進逐步實作。
+
+基本流程：
+
+```text
+先寫 failing test
+       ↓
+test commit（red）
+       ↓
+寫最少 production code 讓測試通過
+       ↓
+feat commit（green）
+       ↓
+必要時進行 refactoring
+       ↓
+refactor commit
+       ↓
+進入下一個書中步驟
+```
+
+每個 commit 盡量對應書中的一個小步驟，避免一次引入大量未經測試的 production code。
+
+環境相關的修改，例如 Docker image、Playwright 版本或 macOS/XQuartz 相容性調整，應與 GOOS 書中 production code 的演進區分開來，並在 commit message 或 documentation 中明確說明。
+
+## 目前的測試方式
+
+執行預設的 headless E2E 測試：
+
+```bash
+bash docker/scripts/test.sh
+```
+
+執行 headed E2E 測試：
+
+```bash
+bash docker/scripts/test.sh --headed
+```
+
+目前專案的 headed 模式主要提供後續 Swing UI 測試除錯使用；如果當前 E2E test 本身沒有啟動或保持 Swing UI，測試即使使用 `--headed` 也不一定會看到視窗。
+
+## 參考資料
+
+* [Growing Object-Oriented Software, Guided by Tests](https://www.growing-object-oriented-software.com/)
+* [goos-code](https://github.com/sf105/goos-code)
+* [Openfire](https://www.igniterealtime.org/projects/openfire/)
+* [Playwright](https://playwright.dev/)
