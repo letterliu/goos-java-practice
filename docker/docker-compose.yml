@@ -1,4 +1,16 @@
 services:
+  openfire:
+    image: nasqueron/openfire:4.7.4
+    ports:
+      - "5222:5222"
+      - "7070:7070"
+      - "7443:7443"
+      - "9090:9090"
+    environment:
+      - "OPENFIRE_ADMIN_PASSWORD=admin"
+    volumes:
+      - openfire-data:/var/lib/openfire
+
   toolbox:
     build:
       context: ..
@@ -6,4 +18,8 @@ services:
     volumes:
       - ..:/app
     working_dir: /app
+    network_mode: "service:openfire"
     command: ["sleep", "infinity"]
+
+volumes:
+  openfire-data:
