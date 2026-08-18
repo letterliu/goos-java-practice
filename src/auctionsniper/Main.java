@@ -31,7 +31,7 @@ public class Main {
 
 	public static void main(String... args) throws Exception {
 		Main main = new Main();
-		main.joinAuction(connectTo(args[ARG_HOSTNAME], args[ARG_USERNAME], args[ARG_PASSWORD]), args[ARG_ITEM_ID]);
+		main.joinAuction(connection(args[ARG_HOSTNAME], args[ARG_USERNAME], args[ARG_PASSWORD]), args[ARG_ITEM_ID]);
 	}
 
 	private void joinAuction(XMPPConnection connection, String itemId) throws Exception {
@@ -49,7 +49,7 @@ public class Main {
 		chat.sendMessage(new Message());
 	}
 
-	private static XMPPConnection connectTo(String hostname, String username, String password) throws XMPPException {
+	private static XMPPConnection connection(String hostname, String username, String password) throws XMPPException {
 		XMPPConnection connection = new XMPPConnection(hostname);
 		connection.connect();
 		connection.login(username, password, AUCTION_RESOURCE);
