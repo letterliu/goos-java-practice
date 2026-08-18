@@ -1,6 +1,5 @@
 package test.endtoend.auctionsniper;
 
-import auctionsniper.Main;
 import auctionsniper.ui.MainWindow;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -18,6 +17,6 @@ public class AuctionSniperDriver extends JFrameDriver {
 	}
 
 	public void showsSniperStatus(String statusText) {
-		new JLabelDriver(this, named(Main.SNIPER_STATUS_NAME)).hasText(equalTo(statusText));
+		new JLabelDriver(this, named(MainWindow.SNIPER_STATUS_NAME)).hasText(equalTo(statusText));
 	}
 }

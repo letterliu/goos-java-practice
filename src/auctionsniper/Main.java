@@ -5,8 +5,6 @@ import javax.swing.SwingUtilities;
 import auctionsniper.ui.MainWindow;
 
 public class Main {
-	public static final String SNIPER_STATUS_NAME = "sniper status";
-
 	private MainWindow ui;
 
 	public Main() throws Exception {
