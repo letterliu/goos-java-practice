@@ -13,26 +13,41 @@
 格式：
 
 ```text
-test(<scope>): red - <test case name> [<book reference>]
-feat(<scope>): green - <test case name> [<book reference>]
-refactor(<scope>): <refactoring description> [<book reference>]
+test(<scope>): red - <紅燈描述> [<書中出處>]
+feat(<scope>): green - <綠燈描述> [<書中出處>]
+refactor(<scope>): <重構描述> [<書中出處>]
 ```
 
 * `<scope>`：測試層級（`unit` / `integration` / `e2e`）或模組名稱（`ui` / `api` / `redis` 等），選擇對這次改動辨識度較高的名稱。跨越多個模組時可省略 scope。
+* `<紅燈描述>`/`<綠燈描述>`：精簡描述這次紅燈/綠燈的重點，不是完整測試方法名稱（完整測試方法名稱長，放進 subject 容易超過 Conventional Commits 建議的 50～72 字元上限）。
 * `<book reference>`：可使用章節（`ch10`）、小節（`3.6`）或頁碼（`p42`），視情況組合，例如 `[3.6]`、`[p42]`、`[ch10 p85]`、`[3.6 p42]`。
 * 書中出處代表這個 commit 的內容涵蓋到書中該章節或頁碼為止，不代表精確定位到單一段落。
+
+`test`/`feat` 的 commit body 一定要加一行 `Test case: <測試案例名稱>`，補上被 subject 省略的完整測試方法名稱：
+
+```text
+Test case: sniperJoinsAuctionUntilAuctionCloses
+```
 
 範例：
 
 ```text
-test(e2e): red - sniperJoinsAuctionUntilAuctionCloses [3.6]
-feat(e2e): green - sniperJoinsAuctionUntilAuctionCloses [3.6]
-refactor(ui): extract AuctionEventListener [p42]
-test(e2e): red - sniperJoinsAuctionUntilAuctionCloses [ch10 p85]
-test(e2e): red - sniperJoinsAuctionUntilAuctionCloses [11.2.1 p96]
+test(e2e): red - missing "Lost" status on close [11.2.1 p96]
+
+Test case: sniperJoinsAuctionUntilAuctionCloses
 ```
 
-如果 commit 有書中內文作為補充說明，commit body 應使用精簡的英文摘要，不直接照抄原文，也不要混用中文。
+```text
+feat(e2e): green - shows "Lost" when auction closes [11.2.4 p102]
+
+Test case: sniperJoinsAuctionUntilAuctionCloses
+```
+
+```text
+refactor(ui): extract AuctionEventListener [p42]
+```
+
+如果使用者貼了書中內文當補充說明，body 除了 `Test case:` 那行以外，不要照抄書中內文，改成精簡摘要，且**只能用英文，不能出現中文字**（避免混用中英文的怪 commit）。
 
 ## Vendor dependencies
 
