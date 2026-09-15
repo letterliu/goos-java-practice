@@ -8,6 +8,7 @@ import static test.endtoend.auctionsniper.FakeAuctionServer.XMPP_HOSTNAME;
 public class ApplicationRunner {
 	public static final String SNIPER_ID = "sniper";
 	public static final String SNIPER_PASSWORD = "sniper";
+	public static final String SNIPER_XMPP_ID = SNIPER_ID + "@" + XMPP_HOSTNAME + "/Auction";
 
 	private AuctionSniperDriver driver;
 
