@@ -101,20 +101,43 @@ Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試�
 
 ### 常用腳本
 
-| 腳本                                | 用途                                    |
-| --------------------------------- | ------------------------------------- |
-| `docker/scripts/test.sh`          | 編譯並執行 end-to-end 測試                   |
-| `docker/scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests  |
-| `docker/scripts/run-app.sh`       | 編譯並執行 Auction Sniper Swing app        |
-| `docker/scripts/start-env.sh`     | 建立並初始化 Openfire 測試環境                  |
-| `docker/scripts/stop-env.sh`      | 停止 container 並清除 Openfire data volume |
-| `docker/scripts/reset-env.sh`     | 清除環境後重新建立 Openfire                    |
+| 腳本 | 用途 |
+| --- | --- |
+| `docker/scripts/test.sh` | 依序執行 unit 測試與 end-to-end 測試 |
+| `docker/scripts/test-unit-tests.sh` | 編譯並執行 unit 測試 |
+| `docker/scripts/test-e2e-tests.sh` | 編譯並執行 end-to-end 測試 |
+| `docker/scripts/run-unit-tests.sh` | 在 toolbox container 內編譯並執行 unit 測試 |
+| `docker/scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests |
+| `docker/scripts/run-app.sh` | 編譯並執行 Auction Sniper Swing app |
+| `docker/scripts/start-env.sh` | 建立並初始化 Openfire 測試環境 |
+| `docker/scripts/stop-env.sh` | 停止 container 並清除 Openfire data volume |
+| `docker/scripts/reset-env.sh` | 清除環境後重新建立 Openfire |
 
-執行 end-to-end 測試：
+#### 測試腳本
+
+執行全部測試（先 unit，再 end-to-end）：
 
 ```bash
 bash docker/scripts/test.sh
 ```
+
+執行 unit 測試：
+
+```bash
+bash docker/scripts/test-unit-tests.sh
+```
+
+這會啟動 `toolbox` container，並在其中執行 `docker/scripts/run-unit-tests.sh`。
+
+Unit 測試不需要 Openfire，但因為 `toolbox` 使用 `network_mode: service:openfire`，因此執行時仍會連帶啟動 `openfire` container。
+
+執行 end-to-end 測試：
+
+```bash
+bash docker/scripts/test-e2e-tests.sh
+```
+
+這會啟動 `toolbox` container，並在其中執行 `docker/scripts/run-e2e-tests.sh`。
 
 ## Swing UI 與 X11
 
@@ -135,6 +158,88 @@ host.docker.internal:0
 ```
 
 連線到主機的 X display。
+
+### macOS XQuartz 設定
+
+`--headed` 模式需要 XQuartz 提供 X11 display。由於 XQuartz 的 X server 存取權限可能在 macOS 重新開機後需要重新設定，因此執行 headed 測試前，建議先確認目前狀態。
+
+先確認 Docker 是否被允許連線到 X server：
+
+```bash
+xhost
+```
+
+確認輸出中包含：
+
+```text
+LOCAL:
+```
+
+或：
+
+```text
+inet:127.0.0.1
+```
+
+再確認 XQuartz 是否啟用 XTEST extension：
+
+```bash
+xdpyinfo | grep -i XTEST
+```
+
+如果兩項檢查都正常，即可直接執行：
+
+```bash
+bash docker/scripts/test.sh --headed
+```
+
+如果出現：
+
+```text
+Authorization required, but no authorization protocol specified
+```
+
+或：
+
+```text
+Can't connect to X11 window server using 'host.docker.internal:0'
+```
+
+代表目前 X server 的存取權限可能尚未設定。
+
+可以重新執行：
+
+```bash
+xhost +local:docker
+xhost + 127.0.0.1
+```
+
+如果 `xdpyinfo | grep -i XTEST` 沒有輸出，啟用 XQuartz 的 XTEST extension：
+
+```bash
+defaults write org.xquartz.X11 enable_test_extensions -bool true
+```
+
+設定後完全關閉並重新啟動 XQuartz：
+
+```bash
+osascript -e 'quit app "XQuartz"'
+open -a XQuartz
+```
+
+重新啟動後再次確認：
+
+```bash
+xdpyinfo | grep -i XTEST
+```
+
+確認 XTEST 存在後，再執行：
+
+```bash
+bash docker/scripts/test.sh --headed
+```
+
+這些設定屬於 macOS/XQuartz 的開發環境設定，不是 GOOS 書中 Auction Sniper production code 的一部分。
 
 另外，也可以直接執行 Auction Sniper：
 
