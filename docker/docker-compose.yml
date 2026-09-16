@@ -2,10 +2,10 @@ services:
   openfire:
     image: nasqueron/openfire:4.7.4
     ports:
-      - "5222:5222"
-      - "7070:7070"
-      - "7443:7443"
-      - "9090:9090"
+      - "9090:9090"   # admin console（跑 setup wizard 用）
+      - "5222:5222"   # 測試會用到的 XMPP client port
+      - "7070:7070"   # unencrypted BOSH / WebSocket（ws://.../ws/）
+      - "7443:7443"   # encrypted BOSH / WebSocket（wss://.../ws/）
     environment:
       - "OPENFIRE_ADMIN_PASSWORD=admin"
     volumes:
