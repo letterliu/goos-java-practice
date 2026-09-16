@@ -47,9 +47,9 @@ public class Main {
 				});
 			}
 		});
-		notToBeGCd = chat;
 
-		chat.sendMessage(new Message());
+		notToBeGCd = chat;
+		chat.sendMessage(Main.JOIN_COMMAND_FORMAT);
 	}
 
 	private static XMPPConnection connection(String hostname, String username, String password) throws XMPPException {
