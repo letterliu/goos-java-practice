@@ -4,6 +4,6 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-docker compose up -d --build toolbox
+docker compose up -d --build --no-deps toolbox
 
 docker compose exec toolbox bash /app/docker/scripts/run-unit-tests.sh

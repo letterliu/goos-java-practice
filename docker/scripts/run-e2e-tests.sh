@@ -13,6 +13,7 @@ DEV_CP=$(ls "$PROJ"/lib/develop/*.jar | grep -v -- '-src.jar' | tr '\n' ':')
 
 compile() {
   local src=$1 out=$2 cp=$3
+	rm -rf "$out"
   mkdir -p "$out"
   javac -d "$out" -cp "$cp" -sourcepath "$src" $(find "$src" -name '*.java')
 }

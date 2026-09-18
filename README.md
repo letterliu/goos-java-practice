@@ -127,9 +127,20 @@ bash docker/scripts/test.sh
 bash docker/scripts/test-unit-tests.sh
 ```
 
-這會啟動 `toolbox` container，並在其中執行 `docker/scripts/run-unit-tests.sh`。
+Unit 測試不需要實際使用 Openfire，但 toolbox 使用 `network_mode: service:openfire`。
+因此執行使用 toolbox 的 scripts 前，Openfire container 必須先處於 running 狀態。
 
-Unit 測試不需要 Openfire，但因為 `toolbox` 使用 `network_mode: service:openfire`，因此執行時仍會連帶啟動 `openfire` container。
+第一次建立環境或環境被清空後，請先執行：
+
+```bash
+bash docker/scripts/start-env.sh
+```
+
+如果 Openfire 已經完成 setup，也可以單獨啟動：
+
+```bash
+docker compose -f docker/docker-compose.yml up -d openfire
+```
 
 執行 end-to-end 測試：
 

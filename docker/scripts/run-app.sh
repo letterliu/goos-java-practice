@@ -8,8 +8,14 @@ cd "$(dirname "$0")/.."
 
 xhost +local:docker > /dev/null 2>&1 || true
 
-sudo docker compose up -d --build toolbox
-sudo docker compose exec -e DISPLAY="$DISPLAY" toolbox bash -c '
+docker compose up -d --build --no-deps toolbox
+docker compose exec \
+  -e DISPLAY=host.docker.internal:0 \
+  -e XMPP_HOSTNAME \
+  -e XMPP_USERNAME \
+  -e XMPP_PASSWORD \
+  -e ITEM_ID \
+  toolbox bash -c '
   set -euo pipefail
   PROJ=/app
   BUILD=$PROJ/build-docker
@@ -20,5 +26,9 @@ sudo docker compose exec -e DISPLAY="$DISPLAY" toolbox bash -c '
   javac -d "$BUILD/app" -cp "$APP_CP" -sourcepath "$PROJ/src" $(find "$PROJ/src" -name "*.java")
 
   echo "== launching auctionsniper.Main =="
-  java -cp "$BUILD/app:$APP_CP" auctionsniper.Main
+	java -cp "$BUILD/app:$APP_CP" auctionsniper.Main \
+  "$XMPP_HOSTNAME" \
+  "$XMPP_USERNAME" \
+  "$XMPP_PASSWORD" \
+  "$ITEM_ID"
 '
