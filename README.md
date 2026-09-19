@@ -99,6 +99,10 @@ Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試�
 
 詳細的 Docker 環境說明見 [docker/README.md](docker/README.md)。
 
+用 `docker/tools/FakeAuction.java` 這個互動式假拍賣工具模擬賣家，見 [docs/fake-auction.md](docs/fake-auction.md)。
+
+如果同時執行 `run-app.sh` 與 `fake-auction.sh` 時，兩個 interactive session 互相干擾，可以改用手動方式啟動 toolbox，再分別使用 `docker compose exec` 執行 Auction Sniper 與 FakeAuction。完整步驟見 [docs/manual-fake-auction.md](docs/manual-fake-auction.md)。
+
 ### 常用腳本
 
 | 腳本 | 用途 |
@@ -108,7 +112,7 @@ Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試�
 | `docker/scripts/test-e2e-tests.sh` | 編譯並執行 end-to-end 測試 |
 | `docker/scripts/run-unit-tests.sh` | 在 toolbox container 內編譯並執行 unit 測試 |
 | `docker/scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests |
-| `docker/scripts/run-app.sh` | 編譯並執行 Auction Sniper Swing app |
+| `docker/scripts/run-app.sh <itemId> [username] [password]` | 編譯並執行 Auction Sniper Swing app |
 | `docker/scripts/start-env.sh` | 建立並初始化 Openfire 測試環境 |
 | `docker/scripts/stop-env.sh` | 停止 container 並清除 Openfire data volume |
 | `docker/scripts/reset-env.sh` | 清除環境後重新建立 Openfire |
@@ -174,22 +178,29 @@ host.docker.internal:0
 
 `--headed` 模式需要 XQuartz 提供 X11 display。由於 XQuartz 的 X server 存取權限可能在 macOS 重新開機後需要重新設定，因此執行 headed 測試前，建議先確認目前狀態。
 
-先確認 Docker 是否被允許連線到 X server：
+先確認目前 X server 的存取控制：
 
 ```bash
 xhost
 ```
 
-確認輸出中包含：
+如果沒有看到 INET:localhost 或 INET6:localhost，可以執行：
 
-```text
-LOCAL:
+```bash
+xhost +localhost
 ```
 
-或：
+確認：
+
+```bash
+xhost
+```
+
+輸出中應包含：
 
 ```text
-inet:127.0.0.1
+INET:localhost
+INET6:localhost
 ```
 
 再確認 XQuartz 是否啟用 XTEST extension：
@@ -198,13 +209,21 @@ inet:127.0.0.1
 xdpyinfo | grep -i XTEST
 ```
 
-如果兩項檢查都正常，即可直接執行：
+如果兩項檢查都正常，即可執行：
 
 ```bash
 bash docker/scripts/test.sh --headed
 ```
 
-如果出現：
+`docker/scripts/run-app.sh` 會在啟動 Swing app 前自動執行 `xhost +localhost`，因此直接執行：
+
+```bash
+bash docker/scripts/run-app.sh <itemId> [username] [password]
+```
+
+時，不需要另外手動設定 X11 access control。
+
+如果仍出現：
 
 ```text
 Authorization required, but no authorization protocol specified
@@ -216,13 +235,10 @@ Authorization required, but no authorization protocol specified
 Can't connect to X11 window server using 'host.docker.internal:0'
 ```
 
-代表目前 X server 的存取權限可能尚未設定。
-
-可以重新執行：
+可以再次執行：
 
 ```bash
-xhost +local:docker
-xhost + 127.0.0.1
+xhost +localhost
 ```
 
 如果 `xdpyinfo | grep -i XTEST` 沒有輸出，啟用 XQuartz 的 XTEST extension：
@@ -251,12 +267,6 @@ bash docker/scripts/test.sh --headed
 ```
 
 這些設定屬於 macOS/XQuartz 的開發環境設定，不是 GOOS 書中 Auction Sniper production code 的一部分。
-
-另外，也可以直接執行 Auction Sniper：
-
-```bash
-bash docker/scripts/run-app.sh
-```
 
 ## Openfire（XMPP）
 

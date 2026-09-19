@@ -4,3 +4,4 @@ build-docker/
 .DS_Store
 docker/node_modules/
 docker/setup-openfire-error.png
+*.class

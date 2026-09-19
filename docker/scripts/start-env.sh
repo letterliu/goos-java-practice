@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "== starting openfire =="
-sudo docker compose up -d openfire
+docker compose up -d openfire
 
 echo "== waiting for http://localhost:9090 =="
 for i in $(seq 1 30); do
@@ -15,8 +15,8 @@ for i in $(seq 1 30); do
 done
 
 echo "== building/starting toolbox =="
-sudo docker compose build toolbox
-sudo docker compose up -d toolbox
+docker compose build toolbox
+docker compose up -d toolbox
 
 if [ ! -d node_modules ]; then
   echo "== installing playwright (first run) =="
