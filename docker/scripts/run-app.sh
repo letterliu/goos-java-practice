@@ -25,7 +25,6 @@ SNIPER_PASSWORD=${3:-sniper}
 
 xhost +localhost > /dev/null 2>&1 || true
 
-docker compose up -d --build --no-deps toolbox
 docker compose exec \
   -e DISPLAY=host.docker.internal:0 \
   -e ITEM_ID="$ITEM_ID" \
