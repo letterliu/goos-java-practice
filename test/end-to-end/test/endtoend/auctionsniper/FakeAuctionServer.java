@@ -15,9 +15,14 @@ public class FakeAuctionServer {
 
 	public FakeAuctionServer(String itemId) {
 		this.itemId = itemId;
+		receiveMessage(new Message());
 	}
 
 	public void startSellingItem() {
+	}
+
+	public void receiveMessage(Message message) {
+		messages.add(message);
 	}
 
 	public void hasReceivedJoinRequestFromSniper() throws InterruptedException {
