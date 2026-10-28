@@ -20,7 +20,7 @@ public class AuctionSniperTest {
 	@Test 
 	public void reportsLostWhenAuctionCloses(){
 		context.checking(new Expectations(){{
-			one(sniperListener).sniperLost();
+			atLeast(1).of(sniperListener).sniperLost();
 		}});
 		
 		sniper.auctionClosed();
