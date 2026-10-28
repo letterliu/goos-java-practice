@@ -18,6 +18,9 @@ services:
     volumes:
       - ..:/app
     working_dir: /app
+    # 用 docker-init（tini）當 PID 1 回收孤兒 process；否則 PID 1 是 sleep，
+    # xvfb-run 結束時 kill 掉但沒 wait 的 Xvfb 會一直留成 zombie
+    init: true
     network_mode: "service:openfire"
     command: ["sleep", "infinity"]
 
