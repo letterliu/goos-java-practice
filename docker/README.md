@@ -32,16 +32,16 @@ Openfire 第一次啟動要跑過 setup wizard、建立測試帳號才能使用�
 docker/scripts/start-env.sh
 ```
 
-會依序：
+啟動流程會依序：
 
-1. 啟動 Openfire。
-2. 等待 9090 有回應。
-3. build / 啟動 toolbox。
-4. 安裝 `docker/package.json` 中指定的 Playwright dependency。
-5. 執行 `setup-openfire.js`。
-6. 建立測試帳號。
+1. 啟動 Openfire，並等待管理介面 `9090` 可回應。
+2. 建置並啟動 toolbox。
+3. 在 `docker/` 目錄執行 `npm install`，安裝 Playwright 等必要依賴。
+4. 執行 `setup-openfire.js`，建立測試帳號，並將 resource conflict policy 設為 `Never kick`。
 
-完成後即可直接執行：
+`Never kick` 會在同一個帳號以相同 resource 重複登入時，拒絕新的登入，而不會踢掉既有連線。這讓 XMPP 登入衝突符合 GOOS 第 12 章的情境：新的登入會收到 `conflict(409)`，而不是讓新連線取代舊連線。Openfire 預設使用 `Always kick`，因此啟動設定時需要明確調整。
+
+環境設定完成後，即可執行：
 
 ```bash
 docker/scripts/test.sh

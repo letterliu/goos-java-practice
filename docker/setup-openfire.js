@@ -153,6 +153,40 @@ async function createAccounts(page) {
   }
 }
 
+// Like Southabee's On-Line in GOOS (ch12), reject a second login with the
+// same resource instead of kicking the existing session (Openfire's default
+// is "Always kick"). A sniper that doesn't disconnect then fails the next
+// login with conflict(409) instead of silently taking over.
+// kickPolicy -1 = "Never kick" (xmpp.session.conflict-limit), taken from
+// session-conflict.jsp of the running Openfire 4.7.4 admin console.
+const NEVER_KICK = '-1';
+
+async function setConflictPolicyToNeverKick(page) {
+	console.log('== setting resource conflict policy: Never kick ==');
+
+	await gotoRobust(page, `${BASE}/session-conflict.jsp`);
+	await ensureLoggedIn(page);
+	await gotoRobust(page, `${BASE}/session-conflict.jsp`);
+
+	await page.check(`input[name="kickPolicy"][value="${NEVER_KICK}"]`);
+	await Promise.all([
+		page.waitForLoadState('networkidle'),
+		page.click('input[name="update"]'),
+	]);
+
+	await gotoRobust(page, `${BASE}/session-conflict.jsp`);
+	const checked = await page.locator('input[name="kickPolicy"]:checked').getAttribute('value');
+
+	if (checked !== NEVER_KICK) {
+		throw new Error(
+			`Resource conflict policy is ${checked}, expected ${NEVER_KICK} (Never kick).`
+		);
+	}
+
+	console.log(`  (kickPolicy = ${checked})`);
+}
+
+
 (async () => {
   // headless: false so you can watch it work the first time; the wizard's
   // exact flow wasn't verified against a live instance beforehand, so if a
@@ -164,6 +198,7 @@ async function createAccounts(page) {
     const didSetup = await runSetupWizard(page);
     await login(page);
     await createAccounts(page);
+		await setConflictPolicyToNeverKick(page);
     console.log(didSetup
       ? 'Done: Openfire configured and test accounts created.'
       : 'Done: test accounts (re)created against existing Openfire setup.');
