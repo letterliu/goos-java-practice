@@ -45,7 +45,7 @@ public class Main implements SniperListener {
 
 		Chat chat = connection.getChatManager().createChat(
 			auctionId(itemId, connection),
-			new AuctionMessageTranslator(new AuctionSniper(this))
+			new AuctionMessageTranslator(new AuctionSniper(null, this))
 		);
 
 		notToBeGCd = chat;
@@ -60,6 +60,9 @@ public class Main implements SniperListener {
 			}
 		});
 	}
+
+	@Override 
+	public void sniperBidding(){}
 
 	private static XMPPConnection connection(String hostname, String username, String password) throws XMPPException {
 		XMPPConnection connection = new XMPPConnection(hostname);
