@@ -14,7 +14,7 @@ import auctionsniper.ui.MainWindow;
 import auctionsniper.xmpp.AuctionMessageTranslator;
 import auctionsniper.xmpp.XMPPAuction;
 
-public class Main implements SniperListener {
+public class Main {
 	private static final int ARG_HOSTNAME = 0;
 	private static final int ARG_USERNAME = 1;
 	private static final int ARG_PASSWORD = 2;
@@ -49,28 +49,34 @@ public class Main implements SniperListener {
 		Auction auction = new XMPPAuction(chat);
 
 		chat.addMessageListener(
-			new AuctionMessageTranslator(new AuctionSniper(auction, this))
+			new AuctionMessageTranslator(new AuctionSniper(auction, new SniperStateDisplayer()))
 		);
 
 		auction.join();
 	}
 
-	@Override
-	public void sniperLost() {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				ui.showStatus(MainWindow.STATUS_LOST);
-			}
-		});
-	}
+	public class SniperStateDisplayer implements SniperListener {
+		@Override
+		public void sniperBidding() {
+			showStatus(MainWindow.STATUS_BIDDING);
+		}
 
-	@Override 
-	public void sniperBidding(){
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				ui.showStatus(MainWindow.STATUS_BIDDING);
-			}
-		});
+		@Override
+		public void sniperLost() {
+			showStatus(MainWindow.STATUS_LOST);
+		}
+
+		public void sniperWinning() {
+			showStatus(MainWindow.STATUS_WINNING);
+		}
+
+		private void showStatus(final String status) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					ui.showStatus(status);
+				}
+			});
+		}
 	}
 
 	private static XMPPConnection connection(String hostname, String username, String password) throws XMPPException {
