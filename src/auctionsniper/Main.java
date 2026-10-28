@@ -12,6 +12,7 @@ import org.jivesoftware.smack.packet.Message;
 
 import auctionsniper.ui.MainWindow;
 import auctionsniper.xmpp.AuctionMessageTranslator;
+import auctionsniper.xmpp.XMPPAuction;
 
 public class Main implements SniperListener {
 	private static final int ARG_HOSTNAME = 0;
@@ -22,9 +23,6 @@ public class Main implements SniperListener {
 	public static final String AUCTION_RESOURCE = "Auction";
 	public static final String ITEM_ID_AS_LOGIN = "auction-%s";
 	public static final String AUCTION_ID_FORMAT = ITEM_ID_AS_LOGIN + "@%s/" + AUCTION_RESOURCE;
-
-	public static final String JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: JOIN;";
-	public static final String BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %d;";
 
 	private MainWindow ui;
 
@@ -48,21 +46,13 @@ public class Main implements SniperListener {
 
 		notToBeGCd = chat;
 
-		Auction auction = new Auction() {
-			public void bid(int amount) {
-				try{
-					chat.sendMessage(String.format(BID_COMMAND_FORMAT, amount));
-				} catch (XMPPException e) {
-					e.printStackTrace();
-				}
-			}
-		};
+		Auction auction = new XMPPAuction(chat);
 
 		chat.addMessageListener(
 			new AuctionMessageTranslator(new AuctionSniper(auction, this))
 		);
 
-		chat.sendMessage(JOIN_COMMAND_FORMAT);
+		auction.join();
 	}
 
 	@Override
