@@ -1,0 +1,22 @@
+services:
+  openfire:
+    image: nasqueron/openfire:4.7.4
+    ports:
+      - "9090:9090"
+      - "5222:5222"
+    volumes:
+      - openfire-data:/var/lib/openfire
+
+  toolbox:
+    build:
+      context: ..
+      dockerfile: docker/toolbox.Dockerfile
+    volumes:
+      - ..:/app
+    working_dir: /app
+    init: true
+    network_mode: "service:openfire"
+    command: ["sleep", "infinity"]
+
+volumes:
+  openfire-data:
