@@ -1,8 +1,7 @@
 package auctionsniper;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import auctionsniper.ui.MainWindow;
 
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
@@ -10,7 +9,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
 
 public class Main {
-	private static JLabel sniperStatus;
+	private static MainWindow ui;
 
 	@SuppressWarnings("unused")
 	private static Chat notToBeGCd;
@@ -18,14 +17,7 @@ public class Main {
 	public static void main(String... args) throws Exception {
 		SwingUtilities.invokeAndWait(new Runnable() {
 			public void run() {
-				sniperStatus = new JLabel("Joining");
-				sniperStatus.setName("sniper status");
-
-				JFrame frame = new JFrame("Auction Sniper");
-				frame.setName("Auction Sniper Main");
-				frame.add(sniperStatus);
-				frame.pack();
-				frame.setVisible(true);
+				ui = new MainWindow();
 			}
 		});
 
@@ -42,7 +34,7 @@ public class Main {
 						if ("Event: CLOSED".equals(message.getBody())) {
 							SwingUtilities.invokeLater(new Runnable() {
 								public void run() {
-									sniperStatus.setText("Lost");
+									ui.showStatus("Lost");
 								}
 							});
 						}
