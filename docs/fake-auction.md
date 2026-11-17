@@ -17,9 +17,7 @@
 
 ## 步驟
 
-**1. 準備好 Docker 環境**（第一次要先跑 `scripts/start-env.sh`，見 [docker.md](docker.md)）。
-
-**2. 開一個新的終端機分頁，啟動假拍賣工具（扮演 `item-54321` 的賣家）：**
+**1. 開一個新的終端機分頁，啟動假拍賣工具（扮演 `item-54321` 的賣家）：**
 
 ```bash
 scripts/fake-auction.sh item-54321
@@ -36,7 +34,7 @@ Type a SOL message body (without the "SOLVersion: 1.1; " prefix) to send it, e.g
 Type "quit" to disconnect and exit.
 ```
 
-**3. 另開一個終端機分頁，啟動 app 並加入同一個 item：**
+**2. 另開一個終端機分頁，啟動 app 並加入同一個 item：**
 
 ```bash
 scripts/run-app.sh item-54321
@@ -44,7 +42,7 @@ scripts/run-app.sh item-54321
 
 app 視窗會顯示 State 為 `Joining`。假拍賣工具那邊的終端機會印出 `> Sniper joined: sniper@localhost/Auction`，代表 sniper 已經送出 JOIN 訊息並連上了。
 
-**4. 模擬拍賣結束**，在 `fake-auction.sh` 的終端機輸入：
+**3. 模擬拍賣結束**，在 `fake-auction.sh` 的終端機輸入：
 
 ```
 Event: CLOSE;
@@ -52,7 +50,7 @@ Event: CLOSE;
 
 app 視窗的 State 會變成 `Lost`，終端機也會印出 `> sent: SOLVersion: 1.1; Event: CLOSE;`。
 
-**5. 結束假拍賣工具：**
+**4. 結束假拍賣工具：**
 
 ```
 quit

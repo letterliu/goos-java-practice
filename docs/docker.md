@@ -26,42 +26,44 @@ Openfire 第一次啟動要跑過 setup wizard、建立測試帳號才能使用�
 | `auction-item-54321` | `auction` |
 | `auction-item-65432` | `auction` |
 
-### 第一次建立環境（或 Openfire 資料被清空後）
+### 第一次建立環境
+
+不用手動建立。還沒有 Openfire 資料時，第一次跑任何測試或 app 腳本會自動依序：
+
+1. 安裝 Playwright（在專案根目錄執行 `npm install`、`npx playwright install chromium`）。
+2. 啟動 Openfire，並等待 admin console 有回應。
+3. 執行 `scripts/setup-openfire.js`，建立測試帳號，並將 resource conflict policy 設成 `Never kick`（同一組帳號 + resource 重複登入時拒絕新的登入，回 `conflict(409)`，對應 GOOS ch12 的情境；Openfire 預設是 `Always kick`）。
+4. 啟動 toolbox（image 不存在時會自動 build）。
+
+wizard 失敗或被中斷（例如按 Ctrl-C）時，會清除尚未完成初始化的 Openfire 資料，下次執行腳本時會重新跑 wizard。
+
+Openfire 的 host port 由 Docker 自動分配。需要從 host 開啟 admin console 時，可以用以下指令查詢實際分配的 port：
 
 ```bash
-scripts/start-env.sh
+docker compose port openfire 9090
 ```
 
-啟動流程會依序：
-
-1. 啟動 Openfire，並等待管理介面 `9090` 可回應。
-2. 建置並啟動 toolbox。
-3. 在專案根目錄執行 `npm install`，安裝 Playwright 等必要依賴。
-4. 執行 `setup-openfire.js`，建立測試帳號，並將 resource conflict policy 設為 `Never kick`。
-
-`Never kick` 會在同一個帳號以相同 resource 重複登入時，拒絕新的登入，而不會踢掉既有連線。這讓 XMPP 登入衝突符合 GOOS 第 12 章的情境：新的登入會收到 `conflict(409)`，而不是讓新連線取代舊連線。Openfire 預設使用 `Always kick`，因此啟動設定時需要明確調整。
-
-環境設定完成後，即可執行：
+### 改了 toolbox.Dockerfile
 
 ```bash
-scripts/test.sh
+scripts/env.sh start
 ```
 
-### 停止環境
+### 移除環境
 
 ```bash
-scripts/stop-env.sh
+scripts/env.sh stop
 ```
 
-停止並移除 container（Openfire + toolbox），並清空 Openfire 的資料 volume。
+移除 container（Openfire + toolbox）、toolbox image 與 Openfire 資料 volume。
 
 ### 環境設定壞掉、想砍掉重建
 
 ```bash
-scripts/reset-env.sh
+scripts/env.sh reset
 ```
 
-等於 `stop-env.sh` 接 `start-env.sh`，會清空 Openfire 資料並重新執行 setup wizard。
+等於 `scripts/env.sh stop` 再跑 `scripts/env.sh start`，會重新 build toolbox 並重新跑一次 wizard。
 
 ## 假拍賣工具
 

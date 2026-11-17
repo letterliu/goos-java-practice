@@ -15,7 +15,7 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-docker compose up -d --build --no-deps toolbox
+scripts/env.sh up
 docker compose exec toolbox bash -c '
   set -euo pipefail
   PROJ=/app

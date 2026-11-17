@@ -6,7 +6,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-docker compose up -d --build --no-deps toolbox
+scripts/env.sh up
 
 if [[ "${1:-}" == "--headed" ]]; then
   xhost +local:docker > /dev/null 2>&1 || true

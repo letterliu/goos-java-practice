@@ -6,16 +6,19 @@
 // (igniterealtime/Openfire, xmppserver/src/main/webapp/setup/*.jsp and
 // user-create.jsp on the `main` branch), not guessed from screenshots.
 //
-// Usage:
-//   npm install playwright   (once)
-//   node scripts/setup-openfire.js
+// Usage: scripts/env.sh up (runs this when there is no Openfire data yet)
 //
-// Assumes `docker compose up -d openfire` has already been run and
-// http://localhost:9090 is reachable.
+// Assumes `docker compose up -d openfire` has already been run and the admin
+// console is reachable at OPENFIRE_ADMIN_URL (set by scripts/env.sh,
+// because Docker assigns the host port).
 
+const path = require('path');
 const { chromium } = require('playwright');
 
-const BASE = 'http://localhost:9090';
+const BASE = process.env.OPENFIRE_ADMIN_URL;
+if (!BASE) {
+	throw new Error('OPENFIRE_ADMIN_URL is not set. Run scripts/env.sh up instead.');
+}
 const ADMIN_EMAIL = 'admin@localhost';
 const ADMIN_PASSWORD = 'adminpass';
 
@@ -85,7 +88,7 @@ async function runSetupWizard(page) {
   await page.fill('#newPasswordConfirm', ADMIN_PASSWORD);
   await clickContinue(page);
 
-  console.log('== setup: finished, waiting for Openfireto run stably, 10 seconds ==');
+  console.log('== setup: finished, waiting for Openfire to run stably, 10 seconds ==');
   await page.waitForLoadState('networkidle');
   // Modules (e.g. UpdateManager, the user provider) finish initializing a
   // few seconds after setup-finished.jsp is reached. Give it real time
@@ -203,7 +206,7 @@ async function setConflictPolicyToNeverKick(page) {
       ? 'Done: Openfire configured and test accounts created.'
       : 'Done: test accounts (re)created against existing Openfire setup.');
   } catch (err) {
-    const shot = require('path').join(__dirname, 'setup-openfire-error.png');
+		const shot = path.join(__dirname, 'setup-openfire-error.png');
     await page.screenshot({ path: shot });
     console.error(`Failed at ${page.url()} -- screenshot saved to ${shot}`);
     throw err;

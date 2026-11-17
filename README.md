@@ -113,9 +113,10 @@ Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試�
 | `scripts/run-unit-tests.sh` | 在 toolbox container 內編譯並執行 unit 測試 |
 | `scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests |
 | `scripts/run-app.sh <itemId> [username] [password]` | 編譯並執行 Auction Sniper Swing app |
-| `scripts/start-env.sh` | 建立並初始化 Openfire 測試環境 |
-| `scripts/stop-env.sh` | 停止 container 並清除 Openfire data volume |
-| `scripts/reset-env.sh` | 清除環境後重新建立 Openfire |
+| `scripts/env.sh up` | 啟動環境；首次執行時自動初始化 Openfire |
+| `scripts/env.sh start` | 重新 build toolbox image 並啟動環境 |
+| `scripts/env.sh stop` | 移除 containers、toolbox image 與 Openfire data volume |
+| `scripts/env.sh reset` | 清除環境後重新建立 Openfire |
 
 #### 測試腳本
 
@@ -131,20 +132,13 @@ bash scripts/test.sh
 bash scripts/test-unit-tests.sh
 ```
 
-Unit 測試不需要實際使用 Openfire，但 toolbox 使用 `network_mode: service:openfire`。
-因此執行使用 toolbox 的 scripts 前，Openfire container 必須先處於 running 狀態。
+Unit 測試本身不需要連線到 Openfire，但 toolbox 使用 `network_mode: service:openfire`，因此仍需要 Openfire container 作為網路環境。
 
-第一次建立環境或環境被清空後，請先執行：
+執行測試腳本時，會透過 `scripts/env.sh up` 自動確保所需環境已啟動。
 
-```bash
-bash scripts/start-env.sh
-```
+執行使用 toolbox 的 scripts 時，會自動呼叫 `scripts/env.sh up`。
 
-如果 Openfire 已經完成 setup，也可以單獨啟動：
-
-```bash
-docker compose -f docker-compose.yml up -d openfire
-```
+如果 Openfire 尚未初始化，會先自動執行 setup wizard、建立測試帳號，再啟動 toolbox；如果已經初始化，則直接啟動 toolbox。
 
 執行 end-to-end 測試：
 
@@ -315,12 +309,9 @@ package.json
 package-lock.json
 ```
 
-首次建立環境時，在專案根目錄執行：
+首次建立 Openfire 環境時，`scripts/env.sh up` 會自動檢查並安裝 Playwright dependencies，以及 Chromium browser binary。
 
-```bash
-npm install
-npx playwright install chromium
-```
+Playwright 的版本仍由 `package.json` 與 `package-lock.json` 管理。
 
 ### 測試帳號
 
@@ -336,54 +327,42 @@ Openfire 第一次啟動要先跑 setup wizard，並建立測試帳號才能執�
 
 ### 第一次建立環境
 
-第一次建立環境，或 Openfire data volume 被清空後：
+不用手動建立。還沒有 Openfire 資料時，第一次執行任何會使用 toolbox 的測試或 app 腳本，會自動依序：
+
+1. 安裝 Playwright（在專案根目錄執行 `npm install`、`npx playwright install chromium`）。
+2. 啟動 Openfire，並等待 admin console 有回應。
+3. 執行 `scripts/setup-openfire.js`，自動完成 setup wizard、建立測試帳號，並將 resource conflict policy 設成 `Never kick`。
+4. 啟動 toolbox（image 不存在時會自動 build）。
+
+wizard 失敗或被中斷（例如按 Ctrl-C）時，會清除尚未完成初始化的 Openfire 資料，下次執行腳本時會重新跑 wizard。
+
+Openfire 的 host port 由 Docker 自動分配。需要從 host 開啟 admin console 時，可以用以下指令查詢實際分配的 port：
 
 ```bash
-bash scripts/start-env.sh
-```
-
-它會依序：
-
-1. 啟動 Openfire。
-2. 等待 `localhost:9090` 可以連線。
-3. build 並啟動 toolbox container。
-4. 安裝專案根目錄中的 Playwright dependencies。
-5. 安裝 Chromium。
-6. 執行 `scripts/setup-openfire.js`。
-7. 自動完成 Openfire setup wizard。
-8. 建立測試帳號。
-
-完成後即可執行：
-
-```bash
-bash scripts/test.sh
+docker compose port openfire 9090
 ```
 
 ### 停止環境
 
 ```bash
-bash scripts/stop-env.sh
+scripts/env.sh stop
 ```
 
-停止並移除 Openfire 與 toolbox container，同時清空 Openfire data volume。
+移除 Openfire 與 toolbox containers、toolbox image，以及 Openfire data volume。
 
 ### 重建環境
 
 如果 Openfire 環境設定壞掉，或需要從乾淨狀態重新建立：
 
 ```bash
-bash scripts/reset-env.sh
+scripts/env.sh reset
 ```
 
-等同於：
+等同於先執行 `scripts/env.sh stop`，再執行 `scripts/env.sh start`。
 
-```text
-stop-env.sh
-↓
-start-env.sh
-```
+這會清空 Openfire data volume，重新執行 setup wizard 並建立測試帳號。
 
-會清空 Openfire data volume，重新執行 setup wizard 並建立測試帳號。
+**提醒：** 這些是文件範例，不要實際執行 `stop` 或 `reset`，因為會刪除目前的 Openfire volume。
 
 ## Docker 與 macOS
 
