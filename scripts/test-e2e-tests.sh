@@ -12,7 +12,7 @@ if [[ "${1:-}" == "--headed" ]]; then
   xhost +local:docker > /dev/null 2>&1 || true
   docker compose exec \
     -e DISPLAY=host.docker.internal:0 \
-    toolbox bash /app/docker/scripts/run-e2e-tests.sh --headed
+    toolbox bash /app/scripts/run-e2e-tests.sh --headed
 else
-  docker compose exec toolbox bash /app/docker/scripts/run-e2e-tests.sh
+  docker compose exec toolbox bash /app/scripts/run-e2e-tests.sh
 fi

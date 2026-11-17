@@ -8,7 +8,7 @@
 //
 // Usage:
 //   npm install playwright   (once)
-//   node docker/setup-openfire.js
+//   node scripts/setup-openfire.js
 //
 // Assumes `docker compose up -d openfire` has already been run and
 // http://localhost:9090 is reachable.

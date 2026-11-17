@@ -13,15 +13,16 @@ services:
 
   toolbox:
     build:
-      context: ..
-      dockerfile: docker/toolbox.Dockerfile
+      context: .
+      dockerfile: toolbox.Dockerfile
+    network_mode: "service:openfire"
     volumes:
-      - ..:/app
+      - .:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw   # 讓容器內的 Swing app 顯示在主機的 X display
     working_dir: /app
     # 用 docker-init（tini）當 PID 1 回收孤兒 process；否則 PID 1 是 sleep，
     # xvfb-run 結束時 kill 掉但沒 wait 的 Xvfb 會一直留成 zombie
     init: true
-    network_mode: "service:openfire"
     command: ["sleep", "infinity"]
 
 volumes:

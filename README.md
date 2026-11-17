@@ -91,15 +91,15 @@ lib/develop/*.jar
 
 ## Java 一律用 Docker 執行
 
-本專案的 Java 編譯、執行、測試一律透過 `docker/docker-compose.yml` 定義的 `toolbox` container 執行，不在 host 直接執行 `javac` / `java`。
+本專案的 Java 編譯、執行、測試一律透過 `docker-compose.yml` 定義的 `toolbox` container 執行，不在 host 直接執行 `javac` / `java`。
 
 ## Docker 環境
 
 Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試環境也是透過 Docker 提供。
 
-詳細的 Docker 環境說明見 [docker/README.md](docker/README.md)。
+詳細的 Docker 環境說明見 [docs/docker.md](docs/docker.md)。
 
-用 `docker/tools/FakeAuction.java` 這個互動式假拍賣工具模擬賣家，見 [docs/fake-auction.md](docs/fake-auction.md)。
+用 `tools/FakeAuction.java` 這個互動式假拍賣工具模擬賣家，見 [docs/fake-auction.md](docs/fake-auction.md)。
 
 如果同時執行 `run-app.sh` 與 `fake-auction.sh` 時，兩個 interactive session 互相干擾，可以改用手動方式啟動 toolbox，再分別使用 `docker compose exec` 執行 Auction Sniper 與 FakeAuction。完整步驟見 [docs/manual-fake-auction.md](docs/manual-fake-auction.md)。
 
@@ -107,28 +107,28 @@ Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試�
 
 | 腳本 | 用途 |
 | --- | --- |
-| `docker/scripts/test.sh` | 依序執行 unit 測試與 end-to-end 測試 |
-| `docker/scripts/test-unit-tests.sh` | 編譯並執行 unit 測試 |
-| `docker/scripts/test-e2e-tests.sh` | 編譯並執行 end-to-end 測試 |
-| `docker/scripts/run-unit-tests.sh` | 在 toolbox container 內編譯並執行 unit 測試 |
-| `docker/scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests |
-| `docker/scripts/run-app.sh <itemId> [username] [password]` | 編譯並執行 Auction Sniper Swing app |
-| `docker/scripts/start-env.sh` | 建立並初始化 Openfire 測試環境 |
-| `docker/scripts/stop-env.sh` | 停止 container 並清除 Openfire data volume |
-| `docker/scripts/reset-env.sh` | 清除環境後重新建立 Openfire |
+| `scripts/test.sh` | 依序執行 unit 測試與 end-to-end 測試 |
+| `scripts/test-unit-tests.sh` | 編譯並執行 unit 測試 |
+| `scripts/test-e2e-tests.sh` | 編譯並執行 end-to-end 測試 |
+| `scripts/run-unit-tests.sh` | 在 toolbox container 內編譯並執行 unit 測試 |
+| `scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests |
+| `scripts/run-app.sh <itemId> [username] [password]` | 編譯並執行 Auction Sniper Swing app |
+| `scripts/start-env.sh` | 建立並初始化 Openfire 測試環境 |
+| `scripts/stop-env.sh` | 停止 container 並清除 Openfire data volume |
+| `scripts/reset-env.sh` | 清除環境後重新建立 Openfire |
 
 #### 測試腳本
 
 執行全部測試（先 unit，再 end-to-end）：
 
 ```bash
-bash docker/scripts/test.sh
+bash scripts/test.sh
 ```
 
 執行 unit 測試：
 
 ```bash
-bash docker/scripts/test-unit-tests.sh
+bash scripts/test-unit-tests.sh
 ```
 
 Unit 測試不需要實際使用 Openfire，但 toolbox 使用 `network_mode: service:openfire`。
@@ -137,22 +137,22 @@ Unit 測試不需要實際使用 Openfire，但 toolbox 使用 `network_mode: se
 第一次建立環境或環境被清空後，請先執行：
 
 ```bash
-bash docker/scripts/start-env.sh
+bash scripts/start-env.sh
 ```
 
 如果 Openfire 已經完成 setup，也可以單獨啟動：
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d openfire
+docker compose -f docker-compose.yml up -d openfire
 ```
 
 執行 end-to-end 測試：
 
 ```bash
-bash docker/scripts/test-e2e-tests.sh
+bash scripts/test-e2e-tests.sh
 ```
 
-這會啟動 `toolbox` container，並在其中執行 `docker/scripts/run-e2e-tests.sh`。
+這會啟動 `toolbox` container，並在其中執行 `scripts/run-e2e-tests.sh`。
 
 ## Swing UI 與 X11
 
@@ -161,7 +161,7 @@ bash docker/scripts/test-e2e-tests.sh
 需要顯示 Swing UI 進行除錯時，可以使用：
 
 ```bash
-bash docker/scripts/test.sh --headed
+bash scripts/test.sh --headed
 ```
 
 `--headed` 模式會將主機的 X display 傳入 toolbox container，讓 Swing UI 可以透過主機的 X server 顯示。
@@ -212,13 +212,13 @@ xdpyinfo | grep -i XTEST
 如果兩項檢查都正常，即可執行：
 
 ```bash
-bash docker/scripts/test.sh --headed
+bash scripts/test.sh --headed
 ```
 
-`docker/scripts/run-app.sh` 會在啟動 Swing app 前自動執行 `xhost +localhost`，因此直接執行：
+`scripts/run-app.sh` 會在啟動 Swing app 前自動執行 `xhost +localhost`，因此直接執行：
 
 ```bash
-bash docker/scripts/run-app.sh <itemId> [username] [password]
+bash scripts/run-app.sh <itemId> [username] [password]
 ```
 
 時，不需要另外手動設定 X11 access control。
@@ -263,7 +263,7 @@ xdpyinfo | grep -i XTEST
 確認 XTEST 存在後，再執行：
 
 ```bash
-bash docker/scripts/test.sh --headed
+bash scripts/test.sh --headed
 ```
 
 這些設定屬於 macOS/XQuartz 的開發環境設定，不是 GOOS 書中 Auction Sniper production code 的一部分。
@@ -272,7 +272,7 @@ bash docker/scripts/test.sh --headed
 
 E2E 測試需要連到真正的 XMPP server。跟 `goos-code` 一樣使用 Docker 執行 Openfire。
 
-`docker/docker-compose.yml` 中的 `toolbox` 使用：
+`docker-compose.yml` 中的 `toolbox` 使用：
 
 ```yaml
 network_mode: service:openfire
@@ -311,11 +311,11 @@ nasqueron/openfire:4.7.4
 因此本專案固定使用與目前 macOS 環境相容的 Playwright 版本，並將其版本記錄在：
 
 ```text
-docker/package.json
-docker/package-lock.json
+package.json
+package-lock.json
 ```
 
-首次建立環境時，在 `docker/` 目錄執行：
+首次建立環境時，在專案根目錄執行：
 
 ```bash
 npm install
@@ -326,7 +326,7 @@ npx playwright install chromium
 
 Openfire 第一次啟動要先跑 setup wizard，並建立測試帳號才能執行 E2E 測試。
 
-`docker/setup-openfire.js` 使用 Playwright 自動完成 setup wizard，並建立以下測試帳號：
+`scripts/setup-openfire.js` 使用 Playwright 自動完成 setup wizard，並建立以下測試帳號：
 
 | 帳號                   | 密碼        |
 | -------------------- | --------- |
@@ -339,7 +339,7 @@ Openfire 第一次啟動要先跑 setup wizard，並建立測試帳號才能執�
 第一次建立環境，或 Openfire data volume 被清空後：
 
 ```bash
-bash docker/scripts/start-env.sh
+bash scripts/start-env.sh
 ```
 
 它會依序：
@@ -347,22 +347,22 @@ bash docker/scripts/start-env.sh
 1. 啟動 Openfire。
 2. 等待 `localhost:9090` 可以連線。
 3. build 並啟動 toolbox container。
-4. 安裝 Docker 目錄中的 Playwright dependencies。
+4. 安裝專案根目錄中的 Playwright dependencies。
 5. 安裝 Chromium。
-6. 執行 `setup-openfire.js`。
+6. 執行 `scripts/setup-openfire.js`。
 7. 自動完成 Openfire setup wizard。
 8. 建立測試帳號。
 
 完成後即可執行：
 
 ```bash
-bash docker/scripts/test.sh
+bash scripts/test.sh
 ```
 
 ### 停止環境
 
 ```bash
-bash docker/scripts/stop-env.sh
+bash scripts/stop-env.sh
 ```
 
 停止並移除 Openfire 與 toolbox container，同時清空 Openfire data volume。
@@ -372,7 +372,7 @@ bash docker/scripts/stop-env.sh
 如果 Openfire 環境設定壞掉，或需要從乾淨狀態重新建立：
 
 ```bash
-bash docker/scripts/reset-env.sh
+bash scripts/reset-env.sh
 ```
 
 等同於：
@@ -437,13 +437,13 @@ refactor commit
 執行預設的 headless E2E 測試：
 
 ```bash
-bash docker/scripts/test.sh
+bash scripts/test.sh
 ```
 
 執行 headed E2E 測試：
 
 ```bash
-bash docker/scripts/test.sh --headed
+bash scripts/test.sh --headed
 ```
 
 目前專案的 headed 模式主要提供後續 Swing UI 測試除錯使用；如果當前 E2E test 本身沒有啟動或保持 Swing UI，測試即使使用 `--headed` 也不一定會看到視窗。

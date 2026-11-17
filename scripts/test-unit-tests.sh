@@ -6,4 +6,4 @@ cd "$(dirname "$0")/.."
 
 docker compose up -d --build --no-deps toolbox
 
-docker compose exec toolbox bash /app/docker/scripts/run-unit-tests.sh
+docker compose exec toolbox bash /app/scripts/run-unit-tests.sh

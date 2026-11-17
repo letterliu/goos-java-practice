@@ -1,8 +1,8 @@
 {
-  "name": "docker",
+  "name": "goos-java",
   "version": "1.0.0",
   "description": "",
-  "main": "setup-openfire.js",
+  "main": "scripts/setup-openfire.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

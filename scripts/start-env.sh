@@ -25,6 +25,6 @@ fi
 npx playwright install chromium
 
 echo "== running Openfire setup wizard + test accounts =="
-node setup-openfire.js
+node scripts/setup-openfire.js
 
-echo "== environment ready. run docker/scripts/test.sh to execute the tests =="
+echo "== environment ready. run scripts/test.sh to execute the tests =="
