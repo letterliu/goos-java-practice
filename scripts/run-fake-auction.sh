@@ -19,9 +19,10 @@ scripts/env.sh up
 docker compose exec toolbox bash -c '
   set -euo pipefail
   PROJ=/app
-  TOOLS=$PROJ/tools
+  BUILD=$PROJ/build-docker
   APP_CP=$(ls "$PROJ"/lib/deploy/*.jar | tr "\n" ":")
 
-  javac -cp "$APP_CP" -d "$TOOLS" "$TOOLS/FakeAuction.java"
-  java -cp "$TOOLS:$APP_CP" FakeAuction '"$@"'
+  mkdir -p "$BUILD/tools"
+  javac -d "$BUILD/tools" -cp "$APP_CP" "$PROJ/tools/FakeAuction.java"
+  java -cp "$BUILD/tools:$APP_CP" FakeAuction '"$@"'
 '
