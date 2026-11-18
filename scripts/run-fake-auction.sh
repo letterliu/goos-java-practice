@@ -4,8 +4,8 @@
 # 後就可以輸入）。
 #
 # Usage:
-#   scripts/fake-auction.sh <itemId>
-#   e.g. scripts/fake-auction.sh item-54321
+#   scripts/run-fake-auction.sh <itemId>
+#   e.g. scripts/run-fake-auction.sh item-54321
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

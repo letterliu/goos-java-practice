@@ -1,6 +1,6 @@
 # 手動模擬 Sniper 加入拍賣、拍賣結束
 
-`tools/FakeAuction.java` 是一個互動式的假拍賣工具，用跟測試程式碼 `FakeAuctionServer.java` 相同的協定（`SOLVersion: 1.1; Event: PRICE; ...`）登入 `auction-<itemId>@localhost`，扮演賣家跟 Auction Sniper app 手動互動；透過 `scripts/fake-auction.sh` 執行（環境設定見 [docker.md](docker.md)）。
+`tools/FakeAuction.java` 是一個互動式的假拍賣工具，用跟測試程式碼 `FakeAuctionServer.java` 相同的協定（`SOLVersion: 1.1; Event: PRICE; ...`）登入 `auction-<itemId>@localhost`，扮演賣家跟 Auction Sniper app 手動互動；透過 `scripts/run-fake-auction.sh` 執行（環境設定見 [docker.md](docker.md)）。
 
 輸入格式是 SOL 訊息本身的內容，只省略固定不變的 `SOLVersion: 1.1; ` 前綴（工具會自動幫你補上）。例如輸入 `Event: CLOSE;`，實際發出的就是 `SOLVersion: 1.1; Event: CLOSE;`。
 
@@ -20,7 +20,7 @@
 **1. 開一個新的終端機分頁，啟動假拍賣工具（扮演 `item-54321` 的賣家）：**
 
 ```bash
-scripts/fake-auction.sh item-54321
+scripts/run-fake-auction.sh item-54321
 ```
 
 會印出：
@@ -42,7 +42,7 @@ scripts/run-app.sh item-54321
 
 app 視窗會顯示 State 為 `Joining`。假拍賣工具那邊的終端機會印出 `> Sniper joined: sniper@localhost/Auction`，代表 sniper 已經送出 JOIN 訊息並連上了。
 
-**3. 模擬拍賣結束**，在 `fake-auction.sh` 的終端機輸入：
+**3. 模擬拍賣結束**，在 `run-fake-auction.sh` 的終端機輸入：
 
 ```
 Event: CLOSE;
@@ -56,7 +56,7 @@ app 視窗的 State 會變成 `Lost`，終端機也會印出 `> sent: SOLVersion
 quit
 ```
 
-以下是跑過 `scripts/fake-auction.sh` 以上流程的 console：
+以下是跑過 `scripts/run-fake-auction.sh` 以上流程的 console：
 
 ```
 Selling item item-54321 as auction-item-54321@localhost/Auction. Waiting for a sniper to join...
