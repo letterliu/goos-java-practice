@@ -89,32 +89,17 @@ lib/develop/*.jar
 
 `.vscode/settings.json` 會被 Git 追蹤，讓 team 成員開啟專案後即可使用相同的 Java library 設定。
 
-## Java 一律用 Docker 執行
+## 使用方式
 
-本專案的 Java 編譯、執行、測試一律透過 `docker-compose.yml` 定義的 `toolbox` container 執行，不在 host 直接執行 `javac` / `java`。
+### 需要的環境
 
-## Docker 環境
+- Docker
+- Node.js（含 npm）與 curl：第一次執行時，用來自動設定 Openfire
+- 圖形介面（X display）：第一次初始化 Openfire、執行 app、執行 `--headed` 測試時會開啟視窗
 
-Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試環境也是透過 Docker 提供。
+不用在本機安裝 Java，編譯、執行和測試都在 container 裡執行。
 
-詳細的 Docker 環境說明見 [docs/docker.md](docs/docker.md)。
-
-用 `tools/FakeAuction.java` 這個互動式假拍賣工具模擬賣家，見 [docs/fake-auction.md](docs/fake-auction.md)。
-
-如果同時執行 `run-app.sh` 與 `fake-auction.sh` 時，兩個 interactive session 互相干擾，可以改用手動方式啟動 toolbox，再分別使用 `docker compose exec` 執行 Auction Sniper 與 FakeAuction。完整步驟見 [docs/manual-fake-auction.md](docs/manual-fake-auction.md)。
-
-### 常用腳本
-
-| 腳本 | 用途 |
-| --- | --- |
-| `scripts/test.sh [unit\|e2e] [--headed]` | 編譯 App，並依參數執行 Unit Tests、E2E Tests 或兩者 |
-| `scripts/run-app.sh <itemId> [username] [password]` | 編譯並執行 Auction Sniper Swing app |
-| `scripts/env.sh up` | 啟動環境；首次執行時自動初始化 Openfire |
-| `scripts/env.sh start` | 重新 build toolbox image 並啟動環境 |
-| `scripts/env.sh stop` | 移除 containers、toolbox image 與 Openfire data volume |
-| `scripts/env.sh reset` | 清除環境後重新建立 Openfire |
-
-#### 測試腳本
+### 1. 跑測試
 
 執行全部測試（先 unit，再 end-to-end）：
 
@@ -134,6 +119,8 @@ bash scripts/test.sh unit
 bash scripts/test.sh e2e
 ```
 
+E2E 測試預設使用 `xvfb-run` 提供虛擬 X display，不需要顯示在主機螢幕上。
+
 執行 headed E2E 測試，讓 Swing UI 顯示在主機螢幕上：
 
 ```bash
@@ -146,7 +133,27 @@ Unit Tests 雖然不需要連線到 Openfire，但 toolbox 使用 `network_mode:
 
 如果 Openfire 尚未初始化，會先自動執行 setup wizard、建立測試帳號，再啟動 toolbox；如果已經初始化，則直接啟動 toolbox。
 
-### macOS XQuartz 設定
+### 2. 手動操作應用程式
+
+啟動 Auction Sniper Swing app：
+
+```bash
+bash scripts/run-app.sh <itemId> [username] [password]
+```
+
+啟動 FakeAuction，模擬賣家進行拍賣：
+
+```bash
+bash scripts/run-fake-auction.sh <itemId>
+```
+
+兩支腳本都會透過 scripts/env.sh up 自動確保所需的 Docker 環境已啟動。
+
+詳細操作方式見 [FakeAuction 使用說明](docs/fake-auction.md)。
+
+如果需要排查 Docker interactive session 問題，也可以先啟動環境，再於不同終端機分別使用 `docker compose exec toolbox bash` 進入同一個 toolbox container，手動啟動 Auction Sniper 與 FakeAuction。這種方式適合 troubleshooting，日常操作仍建議使用上述腳本。
+
+## macOS XQuartz 設定
 
 `--headed` 模式需要 XQuartz 提供 X11 display。由於 XQuartz 的 X server 存取權限可能在 macOS 重新開機後需要重新設定，因此執行 headed 測試前，建議先確認目前狀態。
 
@@ -235,7 +242,7 @@ xdpyinfo | grep -i XTEST
 確認 XTEST 存在後，再執行：
 
 ```bash
-bash scripts/test.sh --headed
+bash scripts/test.sh e2e --headed
 ```
 
 這些設定屬於 macOS/XQuartz 的開發環境設定，不是 GOOS 書中 Auction Sniper production code 的一部分。
@@ -309,8 +316,8 @@ Openfire 第一次啟動要先跑 setup wizard，並建立測試帳號才能執�
 
 1. 安裝 Playwright（在專案根目錄執行 `npm install`、`npx playwright install chromium`）。
 2. 啟動 Openfire，並等待 admin console 有回應。
-3. 執行 `scripts/setup-openfire.js`，自動完成 setup wizard、建立測試帳號，並將 resource conflict policy 設成 `Never kick`。
-4. 啟動 toolbox（image 不存在時會自動 build）。
+3. 執行 `scripts/setup-openfire.js`，自動完成 setup wizard、建立測試帳號，並將 resource conflict policy 設成 `Never kick`。同一組帳號與 resource 重複登入時，拒絕新的登入並回傳 `conflict(409)`，對應 GOOS ch12 的情境；Openfire 預設則是 `Always kick`。
+4. 啟動 toolbox（image 不存在時會自動 build），`toolbox` 會等待 `openfire` 的 healthcheck 通過（XMPP port 5222 有回應）才啟動。
 
 wizard 失敗或被中斷（例如按 Ctrl-C）時，會清除尚未完成初始化的 Openfire 資料，下次執行腳本時會重新跑 wizard。
 
@@ -388,28 +395,6 @@ refactor commit
 每個 commit 盡量對應書中的一個小步驟，避免一次引入大量未經測試的 production code。
 
 環境相關的修改，例如 Docker image、Playwright 版本或 macOS/XQuartz 相容性調整，應與 GOOS 書中 production code 的演進區分開來，並在 commit message 或 documentation 中明確說明。
-
-## 目前的測試方式
-
-執行全部測試（先 unit，再 end-to-end），E2E 預設使用 headless 模式：
-
-```bash
-bash scripts/test.sh
-```
-
-只執行 headless E2E 測試：
-
-```bash
-bash scripts/test.sh e2e
-```
-
-執行 headed E2E 測試：
-
-```bash
-bash scripts/test.sh e2e --headed
-```
-
-目前專案的 headed 模式主要提供後續 Swing UI 測試除錯使用；如果當前 E2E test 本身沒有啟動或保持 Swing UI，測試即使使用 --headed 也不一定會看到視窗。
 
 ## 參考資料
 

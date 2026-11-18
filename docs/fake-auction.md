@@ -1,6 +1,6 @@
 # 手動模擬 Sniper 加入拍賣、拍賣結束
 
-`tools/FakeAuction.java` 是一個互動式的假拍賣工具，用跟測試程式碼 `FakeAuctionServer.java` 相同的協定（`SOLVersion: 1.1; Event: PRICE; ...`）登入 `auction-<itemId>@localhost`，扮演賣家跟 Auction Sniper app 手動互動；透過 `scripts/run-fake-auction.sh` 執行（環境設定見 [docker.md](docker.md)）。
+`tools/FakeAuction.java` 是一個互動式的假拍賣工具，用跟測試程式碼 `FakeAuctionServer.java` 相同的協定（`SOLVersion: 1.1; Event: PRICE; ...`）登入 `auction-<itemId>@localhost`，扮演賣家跟 Auction Sniper app 手動互動；透過 `scripts/run-fake-auction.sh` 執行（環境設定見 [README 使用方式](../README.md#使用方式)）。
 
 輸入格式是 SOL 訊息本身的內容，只省略固定不變的 `SOLVersion: 1.1; ` 前綴（工具會自動幫你補上）。例如輸入 `Event: CLOSE;`，實際發出的就是 `SOLVersion: 1.1; Event: CLOSE;`。
 
