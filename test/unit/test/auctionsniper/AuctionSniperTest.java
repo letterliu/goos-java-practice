@@ -19,7 +19,7 @@ public class AuctionSniperTest {
 	private final AuctionSniper sniper = new AuctionSniper(auction, sniperListener);
 	
 	@Test 
-	public void reportsLostWhenAuctionCloses(){
+	public void reportsLostIfAuctionClosesImmediately(){
 		context.checking(new Expectations(){{
 			atLeast(1).of(sniperListener).sniperLost();
 		}});
