@@ -42,15 +42,14 @@ public class Main {
 		disconnectWhenUICloses(connection);
 
 		final Chat chat = connection.getChatManager()
-																.createChat(auctionId(itemId, connection), null);
+				.createChat(auctionId(itemId, connection), null);
 
 		notToBeGCd = chat;
 
 		Auction auction = new XMPPAuction(chat);
 
 		chat.addMessageListener(
-			new AuctionMessageTranslator(null, new AuctionSniper(auction, new SniperStateDisplayer()))
-		);
+				new AuctionMessageTranslator(connection.getUser(), new AuctionSniper(auction, new SniperStateDisplayer())));
 
 		auction.join();
 	}
