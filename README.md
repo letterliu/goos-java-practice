@@ -107,11 +107,7 @@ Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試�
 
 | 腳本 | 用途 |
 | --- | --- |
-| `scripts/test.sh` | 依序執行 unit 測試與 end-to-end 測試 |
-| `scripts/test-unit-tests.sh` | 編譯並執行 unit 測試 |
-| `scripts/test-e2e-tests.sh` | 編譯並執行 end-to-end 測試 |
-| `scripts/run-unit-tests.sh` | 在 toolbox container 內編譯並執行 unit 測試 |
-| `scripts/run-e2e-tests.sh` | 在 toolbox container 內編譯並執行 E2E tests |
+| `scripts/test.sh [unit\|e2e] [--headed]` | 編譯 App，並依參數執行 Unit Tests、E2E Tests 或兩者 |
 | `scripts/run-app.sh <itemId> [username] [password]` | 編譯並執行 Auction Sniper Swing app |
 | `scripts/env.sh up` | 啟動環境；首次執行時自動初始化 Openfire |
 | `scripts/env.sh start` | 重新 build toolbox image 並啟動環境 |
@@ -126,47 +122,29 @@ Java 的編譯、執行、測試都跑在 Docker 裡，Openfire（XMPP）測試�
 bash scripts/test.sh
 ```
 
-執行 unit 測試：
+只執行 unit 測試：
 
 ```bash
-bash scripts/test-unit-tests.sh
+bash scripts/test.sh unit
 ```
 
-Unit 測試本身不需要連線到 Openfire，但 toolbox 使用 `network_mode: service:openfire`，因此仍需要 Openfire container 作為網路環境。
+只執行 end-to-end 測試：
+
+```bash
+bash scripts/test.sh e2e
+```
+
+執行 headed E2E 測試，讓 Swing UI 顯示在主機螢幕上：
+
+```bash
+bash scripts/test.sh e2e --headed
+```
 
 執行測試腳本時，會透過 `scripts/env.sh up` 自動確保所需環境已啟動。
 
-執行使用 toolbox 的 scripts 時，會自動呼叫 `scripts/env.sh up`。
+Unit Tests 雖然不需要連線到 Openfire，但 toolbox 使用 `network_mode: service:openfire`，因此仍需要 Openfire container 作為網路環境。
 
 如果 Openfire 尚未初始化，會先自動執行 setup wizard、建立測試帳號，再啟動 toolbox；如果已經初始化，則直接啟動 toolbox。
-
-執行 end-to-end 測試：
-
-```bash
-bash scripts/test-e2e-tests.sh
-```
-
-這會啟動 `toolbox` container，並在其中執行 `scripts/run-e2e-tests.sh`。
-
-## Swing UI 與 X11
-
-預設執行 E2E 測試時使用 `xvfb-run` 提供虛擬 X display，因此 Swing UI 不會顯示在主機螢幕上。
-
-需要顯示 Swing UI 進行除錯時，可以使用：
-
-```bash
-bash scripts/test.sh --headed
-```
-
-`--headed` 模式會將主機的 X display 傳入 toolbox container，讓 Swing UI 可以透過主機的 X server 顯示。
-
-在 macOS 上使用 XQuartz，Docker container 透過：
-
-```text
-host.docker.internal:0
-```
-
-連線到主機的 X display。
 
 ### macOS XQuartz 設定
 
@@ -206,7 +184,7 @@ xdpyinfo | grep -i XTEST
 如果兩項檢查都正常，即可執行：
 
 ```bash
-bash scripts/test.sh --headed
+bash scripts/test.sh e2e --headed
 ```
 
 `scripts/run-app.sh` 會在啟動 Swing app 前自動執行 `xhost +localhost`，因此直接執行：
@@ -413,19 +391,25 @@ refactor commit
 
 ## 目前的測試方式
 
-執行預設的 headless E2E 測試：
+執行全部測試（先 unit，再 end-to-end），E2E 預設使用 headless 模式：
 
 ```bash
 bash scripts/test.sh
 ```
 
+只執行 headless E2E 測試：
+
+```bash
+bash scripts/test.sh e2e
+```
+
 執行 headed E2E 測試：
 
 ```bash
-bash scripts/test.sh --headed
+bash scripts/test.sh e2e --headed
 ```
 
-目前專案的 headed 模式主要提供後續 Swing UI 測試除錯使用；如果當前 E2E test 本身沒有啟動或保持 Swing UI，測試即使使用 `--headed` 也不一定會看到視窗。
+目前專案的 headed 模式主要提供後續 Swing UI 測試除錯使用；如果當前 E2E test 本身沒有啟動或保持 Swing UI，測試即使使用 --headed 也不一定會看到視窗。
 
 ## 參考資料
 

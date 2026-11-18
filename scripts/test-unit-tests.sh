@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# Runs the unit tests inside the toolbox container.
-set -euo pipefail
-
-cd "$(dirname "$0")/.."
-
-scripts/env.sh up
-
-docker compose exec toolbox bash /app/scripts/run-unit-tests.sh
