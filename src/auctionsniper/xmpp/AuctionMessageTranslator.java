@@ -1,9 +1,11 @@
 package auctionsniper.xmpp;
 
-import auctionsniper.AuctionEventListener;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;
+
+import auctionsniper.AuctionEventListener;
+import auctionsniper.AuctionEventListener.PriceSource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +25,7 @@ public class AuctionMessageTranslator implements MessageListener {
 		if ("CLOSE".equals(type)) {
 			listener.auctionClosed();
 		} else if ("PRICE".equals(type)) {
-			listener.currentPrice(event.currentPrice(), event.increment());
+			listener.currentPrice(event.currentPrice(), event.increment(), PriceSource.FromOtherBidder);
 		}
 	}
 
